@@ -1,0 +1,529 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Miar Aria personal AI assistant API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: folders
+    description: Folder operations
+  - name: conversations
+    description: Conversation operations
+  - name: messages
+    description: Message operations
+  - name: settings
+    description: Settings operations
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /folders:
+    get:
+      operationId: listFolders
+      tags: [folders]
+      summary: List all folders
+      responses:
+        "200":
+          description: List of folders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Folder"
+    post:
+      operationId: createFolder
+      tags: [folders]
+      summary: Create a folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderInput"
+      responses:
+        "201":
+          description: Created folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+
+  /folders/{folderId}:
+    patch:
+      operationId: updateFolder
+      tags: [folders]
+      summary: Update a folder
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FolderUpdate"
+      responses:
+        "200":
+          description: Updated folder
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+    delete:
+      operationId: deleteFolder
+      tags: [folders]
+      summary: Delete a folder
+      parameters:
+        - name: folderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [conversations]
+      summary: List conversations
+      parameters:
+        - name: folderId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [conversations]
+      summary: Create a conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      tags: [conversations]
+      summary: Get a conversation with messages
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationWithMessages"
+    patch:
+      operationId: updateConversation
+      tags: [conversations]
+      summary: Update a conversation
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "200":
+          description: Updated conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+    delete:
+      operationId: deleteConversation
+      tags: [conversations]
+      summary: Delete a conversation
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /conversations/{conversationId}/messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: List messages in a conversation
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get settings
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    put:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsInput"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+  /settings/token-usage:
+    get:
+      operationId: getTokenUsage
+      tags: [settings]
+      summary: Get token usage statistics
+      responses:
+        "200":
+          description: Token usage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenUsage"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Folder:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        isShared:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - isShared
+        - createdAt
+        - updatedAt
+
+    FolderInput:
+      type: object
+      properties:
+        name:
+          type: string
+        isShared:
+          type: boolean
+      required:
+        - name
+
+    FolderUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        isShared:
+          type: boolean
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        folderId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - createdAt
+        - updatedAt
+
+    ConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+        folderId:
+          type: integer
+          nullable: true
+      required:
+        - title
+
+    ConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        folderId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+      required:
+        - id
+        - title
+        - createdAt
+        - updatedAt
+        - messages
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+        provider:
+          type: string
+          nullable: true
+        model:
+          type: string
+          nullable: true
+        feedback:
+          type: string
+          nullable: true
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - timestamp
+
+    Settings:
+      type: object
+      properties:
+        groqKeys:
+          type: array
+          items:
+            type: string
+        openrouterKeys:
+          type: array
+          items:
+            type: string
+        geminiKeys:
+          type: array
+          items:
+            type: string
+        mistralKeys:
+          type: array
+          items:
+            type: string
+        mem0Key:
+          type: string
+          nullable: true
+        userEmail:
+          type: string
+        directives:
+          type: string
+        theme:
+          type: string
+        audioSpeed:
+          type: number
+        activeProvider:
+          type: string
+        activeModel:
+          type: string
+        plan:
+          type: string
+        silentMode:
+          type: boolean
+        saveToMemory:
+          type: boolean
+        groqEnabled:
+          type: boolean
+        openrouterEnabled:
+          type: boolean
+        geminiEnabled:
+          type: boolean
+        mistralEnabled:
+          type: boolean
+      required:
+        - groqKeys
+        - openrouterKeys
+        - geminiKeys
+        - mistralKeys
+        - userEmail
+        - directives
+        - theme
+        - audioSpeed
+        - activeProvider
+        - activeModel
+
+    SettingsInput:
+      type: object
+      properties:
+        groqKeys:
+          type: array
+          items:
+            type: string
+        openrouterKeys:
+          type: array
+          items:
+            type: string
+        geminiKeys:
+          type: array
+          items:
+            type: string
+        mistralKeys:
+          type: array
+          items:
+            type: string
+        mem0Key:
+          type: string
+          nullable: true
+        userEmail:
+          type: string
+        directives:
+          type: string
+        theme:
+          type: string
+        audioSpeed:
+          type: number
+        activeProvider:
+          type: string
+        activeModel:
+          type: string
+        silentMode:
+          type: boolean
+        saveToMemory:
+          type: boolean
+        groqEnabled:
+          type: boolean
+        openrouterEnabled:
+          type: boolean
+        geminiEnabled:
+          type: boolean
+        mistralEnabled:
+          type: boolean
+
+    ProviderTokenUsage:
+      type: object
+      properties:
+        provider:
+          type: string
+        tokens:
+          type: integer
+        date:
+          type: string
+      required:
+        - provider
+        - tokens
+        - date
+
+    TokenUsage:
+      type: object
+      properties:
+        overall:
+          type: integer
+        providers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProviderTokenUsage"
+      required:
+        - overall
+        - providers
+
